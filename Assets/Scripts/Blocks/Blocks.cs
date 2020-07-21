@@ -10,8 +10,8 @@ namespace VoxelEngine.Blocks {
     public enum Block : ushort {
 
         Null = 0x0000,
-        Air = 0x0000,
-        Stone = 0x0000
+        Air = 0x0001,
+        Stone = 0x0002
 
     }
 
@@ -61,6 +61,29 @@ namespace VoxelEngine.Blocks {
             }
 
             return faceVertices;
+        }
+
+        public static int GetBlockIndex(int3 position) => position.x + position.z * 16 + position.y * 16 * 16;
+
+        public static bool IsEmpty(this Block block) => block == Block.Air;
+        
+        public static int3 GetPositionInDirection(Direction direction, int x, int y, int z) {
+            switch (direction) {
+                case Direction.Forward:
+                    return new int3(x, y, z+1);
+                case Direction.Right:
+                    return new int3(x+1, y, z);
+                case Direction.Back:
+                    return new int3(x, y, z-1);
+                case Direction.Left:
+                    return new int3(x-1, y, z);
+                case Direction.Up:
+                    return new int3(x, y+1, z);
+                case Direction.Down:
+                    return new int3(x, y-1, z);
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(direction), direction, null);
+            }
         }
 
     }
