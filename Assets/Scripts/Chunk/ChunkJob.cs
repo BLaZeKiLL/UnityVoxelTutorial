@@ -1,4 +1,5 @@
-﻿using Unity.Collections;
+﻿using Unity.Burst;
+using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 
@@ -6,6 +7,7 @@ using VoxelEngine.Blocks;
 
 namespace VoxelEngine.Chunk {
 
+    [BurstCompile(CompileSynchronously = true)]
     public struct ChunkJob : IJob {
 
         public struct MeshData {
@@ -15,14 +17,25 @@ namespace VoxelEngine.Chunk {
 
         }
         
+        public struct BlockData {
+
+            public NativeArray<int3> Vertices { get; set; }
+            public NativeArray<int> Triangles { get; set; }
+
+        }
+        
         public struct ChunkData {
 
             public NativeArray<Block> Blocks { get; set; }
 
         }
-        
-        public MeshData meshData { get; set; }
-        public ChunkData chunkData { get; set; }
+
+        [WriteOnly] public MeshData meshData;
+
+        [ReadOnly] public ChunkData chunkData;
+        [ReadOnly] public BlockData blockData;
+
+        private int vCount;
         
         public void Execute() {
             for (int x = 0; x < 16; x++) {
@@ -43,20 +56,20 @@ namespace VoxelEngine.Chunk {
         }
         
         private void CreateFace(Direction direction, int3 pos) {
-            var _vertices = BlockExtensions.GetFaceVertices(direction, 1, pos);
+            var _vertices = GetFaceVertices(direction, 1, pos);
             
             meshData.Vertices.AddRange(_vertices);
 
             _vertices.Dispose();
-            
-            var vCount = meshData.Vertices.Length - 4;
 
-            meshData.Triangles.Add(vCount);
-            meshData.Triangles.Add(vCount + 1);
-            meshData.Triangles.Add(vCount + 2);
-            meshData.Triangles.Add(vCount);
-            meshData.Triangles.Add(vCount + 2);
-            meshData.Triangles.Add(vCount + 3);
+            vCount += 4;
+
+            meshData.Triangles.Add(vCount - 4);
+            meshData.Triangles.Add(vCount - 4 + 1);
+            meshData.Triangles.Add(vCount - 4 + 2);
+            meshData.Triangles.Add(vCount - 4);
+            meshData.Triangles.Add(vCount - 4 + 2);
+            meshData.Triangles.Add(vCount - 4 + 3);
         }
 
         private bool Check(int3 position) {
@@ -65,6 +78,17 @@ namespace VoxelEngine.Chunk {
             if (position.y >= 16) return false;
 
             return chunkData.Blocks[BlockExtensions.GetBlockIndex(position)].IsEmpty();
+        }
+        
+        public NativeArray<int3> GetFaceVertices(Direction direction, int scale, int3 pos) {
+            var faceVertices = new NativeArray<int3>(4, Allocator.Temp);
+
+            for (int i = 0; i < 4; i++) {
+                var index = blockData.Triangles[(int) direction * 4 + i];
+                faceVertices[i] = blockData.Vertices[index] * scale + pos;
+            }
+
+            return faceVertices;
         }
 
     }

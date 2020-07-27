@@ -28,24 +28,26 @@ namespace VoxelEngine.Blocks {
 
     public struct BlockData {
 
-        public static readonly int3[] Vertices = {
-            new int3(1, 1, 1),
-            new int3(0, 1, 1),
-            new int3(0, 0, 1),
-            new int3(1, 0, 1),
-            new int3(0, 1, 0),
-            new int3(1, 1, 0),
-            new int3(1, 0, 0),
-            new int3(0, 0, 0)
+        [ReadOnly]
+        public static readonly NativeArray<int3> Vertices = new NativeArray<int3>(8, Allocator.Persistent) {
+            [0] = new int3( 1,  1,  1), 
+            [1] = new int3(0,  1,  1),
+            [2] = new int3(0, 0,  1),
+            [3] = new int3( 1, 0,  1),
+            [4] = new int3(0,  1, 0),
+            [5] = new int3( 1,  1, 0),
+            [6] = new int3( 1, 0, 0),
+            [7] = new int3(0, 0, 0)
         };
-        
-        public static readonly int[][] Triangles = {
-            new[] { 0, 1, 2, 3 },
-            new[] { 5, 0, 3, 6 },
-            new[] { 4, 5, 6, 7 },
-            new[] { 1, 4, 7, 2 },
-            new[] { 5, 4, 1, 0 },
-            new[] { 3, 2, 7, 6 }
+
+        [ReadOnly]
+        public static readonly NativeArray<int> Triangles = new NativeArray<int>(24, Allocator.Persistent) {
+            [0] = 0, [1] = 1, [2] = 2, [3] = 3,
+            [4] = 5, [5] = 0, [6] = 3, [7] = 6,
+            [8] = 4, [9] = 5, [10] = 6, [11] = 7,
+            [12] = 1, [13] = 4, [14] = 7, [15] = 2,
+            [16] = 5, [17] = 4, [18] = 1, [19] = 0,
+            [20] = 3, [21] = 2, [22] = 7, [23] = 6 
         };
 
     }
@@ -56,7 +58,7 @@ namespace VoxelEngine.Blocks {
             var faceVertices = new NativeArray<int3>(4, Allocator.Temp);
 
             for (int i = 0; i < 4; i++) {
-                var index = BlockData.Triangles[(int) direction][i];
+                var index = BlockData.Triangles[(int) direction * 4 + i];
                 faceVertices[i] = BlockData.Vertices[index] * scale + pos;
             }
 

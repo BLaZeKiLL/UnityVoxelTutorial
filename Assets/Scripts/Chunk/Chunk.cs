@@ -52,6 +52,10 @@ namespace VoxelEngine.Chunk {
                 meshData = meshData,
                 chunkData = new ChunkJob.ChunkData {
                     Blocks = blocks
+                },
+                blockData = new ChunkJob.BlockData {
+                    Vertices = BlockData.Vertices,
+                    Triangles = BlockData.Triangles
                 }
             }.Schedule();
             
